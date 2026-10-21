@@ -68,18 +68,20 @@ struct Panel: View {
         }
     }
 
+    private var limit: Int { Int(draft.limit.rounded()) }
+
     private func limitRow(_ s: Status) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text("Charge limit")
                 Spacer()
-                Text("\(Int(draft.limit))%").monospacedDigit().foregroundStyle(.secondary)
+                Text("\(limit)%").monospacedDigit().foregroundStyle(.secondary)
             }
-            Slider(value: $draft.limit, in: 10...100, step: 1) { editing in
-                if !editing { model.send(.limit(Int(draft.limit))) }
+            Slider(value: $draft.limit, in: 10...100) { editing in
+                if !editing { model.send(.limit(limit)) }
             }
-            if !mclSteps.contains(Int(draft.limit)) {
-                Text("macOS only holds 80, 85, 90, 95 or 100%. Scotta holds \(Int(draft.limit))% while awake, and macOS holds \(ceiling(Int(draft.limit)))% while asleep.")
+            if !mclSteps.contains(limit) {
+                Text("macOS only holds 80, 85, 90, 95 or 100%. Scotta holds \(limit)% while awake, and macOS holds \(ceiling(limit))% while asleep.")
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -100,12 +102,11 @@ struct Panel: View {
         ]
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 6) {
             ForEach(items, id: \.0) { title, icon, cmd in
-                Button { model.send(cmd) } label: {
+                let button = Button { model.send(cmd) } label: {
                     Label(title, systemImage: icon).frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
-                .tint(active(cmd) ? .accentColor : nil)
                 .controlSize(.regular)
+                if active(cmd) { button.buttonStyle(.borderedProminent) } else { button.buttonStyle(.bordered) }
             }
         }
     }
@@ -166,9 +167,13 @@ struct Panel: View {
             }
             .font(.callout)
             if model.power.count > 1 {
-                Chart(model.power, id: \.0) { LineMark(x: .value("Time", $0.0), y: .value("W", $0.1)) }
-                    .chartXAxis(.hidden)
-                    .frame(height: 60)
+                Chart(model.power, id: \.0) {
+                    LineMark(x: .value("Time", $0.0), y: .value("W", $0.1)).interpolationMethod(.monotone)
+                }
+                .chartXAxis(.hidden)
+                .chartYAxis(.hidden)
+                .chartYScale(domain: .automatic(includesZero: false))
+                .frame(height: 44)
             }
         }
         .padding(.top, 6)
