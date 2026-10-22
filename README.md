@@ -4,6 +4,8 @@
 
 <p align="center">A small, fast battery charge limiter for Apple Silicon Macs.</p>
 
+https://github.com/user-attachments/assets/99084b37-e0fc-460f-aed4-53e569c83284
+
 *Al dente* pasta is cooked just right.
 *Scotta* is overcooked.
 Scotta keeps your battery from being cooked: it stops charging at the level you choose.
