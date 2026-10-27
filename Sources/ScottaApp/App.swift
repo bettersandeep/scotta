@@ -21,7 +21,7 @@ struct ScottaApp: App {
 struct MenuLabel: View {
     @ObservedObject var model: Model
     var body: some View {
-        Image(systemName: model.symbol)
+        Image(nsImage: MenuIcon.image(percent: model.status?.battery.percent ?? 0, badge: model.badge))
         if let p = model.status?.battery.percent { Text("\(p)%") }
     }
 }
@@ -75,16 +75,18 @@ final class Model: ObservableObject {
         }
     }
 
-    var symbol: String {
-        guard let s = status else { return "battery.0percent" }
+    /// State drawn inside the menu-bar battery; nil on battery power with nothing special going on.
+    var badge: String? {
+        guard let s = status else { return "exclamationmark" }
         switch s.decision.mode {
-        case .discharge, .calibrate(.drain, _): return "arrow.down.circle"
+        case .discharge, .calibrate(.drain, _): return "arrow.down"
         default: break
         }
-        if s.decision.heatPaused { return "thermometer.high" }
+        if s.decision.heatPaused { return "thermometer.medium" }
         if s.battery.charging { return "bolt.fill" }
-        if case .off = s.decision.mode { return "battery.100percent" }
-        return s.battery.plugged ? "pause.circle" : "battery.75percent"
+        guard s.battery.plugged else { return nil }
+        if case .off = s.decision.mode { return "powerplug.fill" }
+        return "pause.fill"
     }
 
     var launchAtLogin: Bool {
