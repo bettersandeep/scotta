@@ -12,8 +12,12 @@ all: app
 build:
 	swift build -c release
 
+# SwiftPM's default build system resolves the Swift Testing macro plugin nondeterministically
+# (about 6 runs in 8 fail with "plugin for module 'TestingMacros' not found"). Naming it explicitly fixes that.
+TESTING_MACROS := $(shell dirname $$(dirname $$(xcrun --find swift)))/lib/swift/host/plugins/testing/libTestingMacros.dylib
+
 test:
-	swift test
+	swift test $(if $(wildcard $(TESTING_MACROS)),-Xswiftc -load-plugin-library -Xswiftc $(TESTING_MACROS))
 
 app: build
 	rm -rf $(APP)
